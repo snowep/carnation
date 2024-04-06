@@ -1,4 +1,4 @@
-import 'package:carnation/firebase_options.dart';
+import 'package:carnation/services/firebase_options.dart';
 import 'package:carnation/view/home/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
