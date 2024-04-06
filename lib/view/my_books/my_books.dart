@@ -1,3 +1,4 @@
+import 'package:carnation/view/my_books/add_book.dart';
 import 'package:flutter/material.dart';
 
 class MyBooksScreen extends StatefulWidget {
@@ -19,6 +20,15 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
           'My Books Page',
           style: TextStyle(fontSize: 24),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddBookScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
