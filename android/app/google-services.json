@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "940128216104",
+    "firebase_url": "https://garden--carnation-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "garden--carnation",
+    "storage_bucket": "garden--carnation.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:940128216104:android:287630439bb808ddd3411d",
+        "android_client_info": {
+          "package_name": "com.example.carnation"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPCseHcAey7RfIh9HzLZyoJCJ6o9as1cQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
