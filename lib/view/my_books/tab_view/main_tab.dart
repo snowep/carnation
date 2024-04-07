@@ -29,6 +29,7 @@ class _MainTabState extends State<MainTab> with AutomaticKeepAliveClientMixin {
       padding: const EdgeInsets.all(16),
       children: [
         TextFormField(
+          keyboardType: TextInputType.number,
           controller: widget.isbnController,
           decoration: const InputDecoration(labelText: 'ISBN'),
           validator: (value) {

@@ -31,22 +31,27 @@ class _DetailsTabState extends State<DetailsTab> with AutomaticKeepAliveClientMi
       padding: const EdgeInsets.all(16),
       children: [
         TextFormField(
+          keyboardType: TextInputType.number,
           controller: widget.widthController,
-          decoration: const InputDecoration(labelText: 'Width (Optional)')
+          decoration: const InputDecoration(labelText: 'Width (Optional) (cm)')
         ),
         TextFormField(
+          keyboardType: TextInputType.number,
           controller: widget.heightController,
-          decoration: const InputDecoration(labelText: 'Height (Optional)')
+          decoration: const InputDecoration(labelText: 'Height (Optional) (cm)')
         ),
         TextFormField(
+          keyboardType: TextInputType.number,
           controller: widget.seriesController,
           decoration: const InputDecoration(labelText: 'Series (Optional)')
         ),
         TextFormField(
+          keyboardType: TextInputType.number,
           controller: widget.volumeController,
           decoration: const InputDecoration(labelText: 'Volume (Optional)')
         ),
         TextFormField(
+          keyboardType: TextInputType.number,
           controller: widget.printingController,
           decoration: const InputDecoration(labelText: 'Printing (Optional)')
         ),

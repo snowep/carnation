@@ -47,6 +47,7 @@ class _PersonalTabState extends State<PersonalTab> with AutomaticKeepAliveClient
           },
         ),
         TextFormField(
+          keyboardType: TextInputType.number,
           controller: widget.quantityController,
           decoration: const InputDecoration(labelText: 'Quantity'),
         ),
