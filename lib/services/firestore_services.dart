@@ -4,36 +4,63 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FirestoreService {
   final db = FirebaseFirestore.instance;
 
-  addBook(
-    // Main
-    isbn,
-    title,
-    author,
-    synopsis,
-    // Details
-    [
-      String? width,
-      String? height,
-      String? series,
-      String? volume,
-      String? printing
-    ]
-  ) async {
-    final docRef = db.collection('books').doc();
+  Future<bool> bookExists(String isbn) async {
+    final docSnapshot = await db.collection('books').doc(isbn).get();
+    return docSnapshot.exists;
+  }
+
+  Future<void> addBook({
+    required String isbn,
+    required String title,
+    required String authors, // Changed to a string
+    required String synopsis,
+    double? width,
+    double? height,
+    String? series,
+    int? volume,
+    int? printing,
+    String? illustrator,
+    String? editor,
+    String? translator,
+    String? coverArtist,
+    String? collectionStatus,
+    required int quantity,
+    String? condition,
+    String? location,
+    String? owner,
+  }) async {
+    if (await bookExists(isbn)) {
+      throw Exception('Book already exists');
+    } 
     Book book = Book(
       isbn: isbn, 
       title: title,
-      author: author,
+      authors: authors, // Changed to a string
       synopsis: synopsis,
       width: width,
       height: height,
       series: series,
       volume: volume,
-      printing: printing
+      printing: printing,
+      illustrator: illustrator,
+      editor: editor,
+      translator: translator,
+      coverArtist: coverArtist,
+      collectionStatus: collectionStatus,
+      quantity: quantity,
+      condition: condition,
+      location: location,
+      owner: owner,
     );
 
-    await docRef.set(book.toJson());
+    final bookDocRef = db.collection('books').doc(isbn);
+    await bookDocRef.set(book.toJson());
 
-    print(title);
+    for (String author in book.authors) {
+      final authorDocRef = db.collection('authors').doc(author);
+      await authorDocRef.set({
+        'books': FieldValue.arrayUnion([isbn]),
+      }, SetOptions(merge: true));
+    }
   }
 }

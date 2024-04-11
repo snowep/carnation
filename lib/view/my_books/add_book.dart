@@ -1,4 +1,5 @@
 import 'package:carnation/services/firestore_services.dart';
+import 'package:carnation/view/my_books/tab_view/cover_tab.dart';
 import 'package:carnation/view/my_books/tab_view/credits_tab.dart';
 import 'package:carnation/view/my_books/tab_view/details_tab.dart';
 import 'package:carnation/view/my_books/tab_view/main_tab.dart';
@@ -44,26 +45,50 @@ class _AddBookScreenState extends State<AddBookScreen> {
           actions: [
             IconButton(
               icon: const Icon(Icons.save),
-              onPressed: () {
+              onPressed: () async {
                 if (
                   detailsFormKey.currentState != null &&
                   detailsFormKey.currentState!.validate() && 
                   mainFormKey.currentState != null &&
                   mainFormKey.currentState!.validate()
                 ) {
-                  FirestoreService().addBook(
-                    // Main
-                    isbnController.text,
-                    titleController.text,
-                    authorController.text,
-                    synopsisController.text,
-                    // Details
-                    widthController.text,
-                    heightController.text,
-                    seriesController.text,
-                    volumeController.text,
-                    printingController.text
-                  );
+                  try {
+                    final bookExists = await FirestoreService().bookExists(isbnController.text);
+                    if (bookExists) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Book with this ISBN already exists')),
+                      );
+                    } else {
+                      await FirestoreService().addBook(
+                        isbn: isbnController.text,
+                        title: titleController.text,
+                        authors: authorController.text,
+                        synopsis: synopsisController.text,
+                        width: double.tryParse(widthController.text),
+                        height: double.tryParse(heightController.text),
+                        series: seriesController.text,
+                        volume: int.tryParse(volumeController.text),
+                        printing: int.tryParse(printingController.text),
+                        illustrator: illustratorController.text,
+                        editor: editorController.text,
+                        translator: translatorController.text,
+                        coverArtist: coverArtistController.text,
+                        collectionStatus: collectionStatusController.text,
+                        quantity: int.tryParse(quantityController.text) ?? 0,
+                        condition: conditionController.text,
+                        location: locationController.text,
+                        owner: ownerController.text,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Book added successfully')),
+                      );
+                      Navigator.of(context).pop();
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to add book: $e')),
+                    );
+                  }
                 }
               },
             ),
@@ -107,7 +132,9 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 coverArtistController: coverArtistController,
               ),
             ),
-            const Center(child: Text('Cover')),
+            Form(
+              child: CoverTab(),
+            ),
             Form(
               child: PersonalTab(
                 collectionStatusController: collectionStatusController,

@@ -34,10 +34,21 @@ class _PersonalTabState extends State<PersonalTab> with AutomaticKeepAliveClient
         DropdownButtonFormField(
           value: _selectedCollectionStatus,
           decoration: const InputDecoration(labelText: 'Collection Status'),
-          items: ['Owned', 'Wishlist', 'Borrowed'].map((String value) {
+          items: [
+            {'value': 'Owned', 'icon': Icons.done},
+            {'value': 'Borrowed', 'icon': Icons.book},
+            {'value': 'Wishlist', 'icon': Icons.favorite_border},
+            {'value': 'On Order', 'icon': Icons.shopping_cart}
+          ].map((item) {
             return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
+              value: item['value'] as String?,
+              child: Row(
+                children: <Widget>[
+                  Icon(item['icon'] as IconData?),
+                  const SizedBox(width: 10),  // provides some space between the icon and the text
+                  Text(item['value'] as String),
+                ],
+              ),
             );
           }).toList(),
           onChanged: (String? newValue) {
