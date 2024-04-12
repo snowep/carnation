@@ -41,7 +41,6 @@ class _DetailsTabState extends State<DetailsTab> with AutomaticKeepAliveClientMi
           decoration: const InputDecoration(labelText: 'Height (Optional) (cm)')
         ),
         TextFormField(
-          keyboardType: TextInputType.number,
           controller: widget.seriesController,
           decoration: const InputDecoration(labelText: 'Series (Optional)')
         ),
