@@ -64,6 +64,13 @@ class FirestoreService {
         'books': FieldValue.arrayUnion([isbn]),
       }, SetOptions(merge: true));
     }
+
+    final seriesDocRef = db.collection('series').doc(series);
+    await seriesDocRef.set({
+      'books': FieldValue.arrayUnion([isbn]),
+    }, SetOptions(merge: true));
+
+
   }
 
   Future<void> updateBookCoverImageUrl(String isbn, String url) async {

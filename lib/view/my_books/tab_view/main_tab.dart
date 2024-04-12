@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class MainTab extends StatefulWidget {
@@ -19,6 +20,7 @@ class MainTab extends StatefulWidget {
 }
 
 class _MainTabState extends State<MainTab> with AutomaticKeepAliveClientMixin {
+
   @override
   bool get wantKeepAlive => true;
   
@@ -49,15 +51,89 @@ class _MainTabState extends State<MainTab> with AutomaticKeepAliveClientMixin {
             return null;
           },
         ),
-        TextFormField(
-          controller: widget.authorController,
-          decoration: const InputDecoration(labelText: 'Author'),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter Author';
-            }
-            return null;
-          },
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('authors').snapshots(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Something went wrong');
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Text("Loading");
+                  }
+
+                  List<String> authors = snapshot.data!.docs.map((DocumentSnapshot document) {
+                    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                    return data['name'] ?? '';
+                  }).toList().cast<String>();
+
+                  return DropdownButtonFormField<String>(
+                    value: widget.authorController.text.isEmpty ? null : widget.authorController.text,
+                    items: authors.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        widget.authorController.text = newValue ?? '';
+                      });
+                    },
+                    decoration: const InputDecoration(labelText: 'Author'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter Author';
+                      }
+                      return null;
+                    },
+                  );
+                },
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    TextEditingController _authorController = TextEditingController();
+                    return AlertDialog(
+                      title: Text('Add new author'),
+                      content: TextFormField(
+                        controller: _authorController,
+                        decoration: const InputDecoration(labelText: 'Author name'),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('Cancel'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: Text('Add'),
+                          onPressed: () {
+                            if (_authorController.text.isNotEmpty) {
+                              FirebaseFirestore.instance.collection('authors').doc(_authorController.text).set({
+                                'name': _authorController.text,
+                              });
+                              _authorController.clear();
+                              Navigator.of(context).pop();
+                            }
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
         TextFormField(
           controller: widget.synopsisController,
