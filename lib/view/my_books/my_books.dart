@@ -1,3 +1,4 @@
+import 'package:carnation/view/my_books/add_book.dart';
 import 'package:carnation/view/my_books/details/details_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -55,28 +56,40 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
       ),
       body: Center(
         child: _documents.isEmpty
-            ? CircularProgressIndicator()
-            : ListView.builder(
-                controller: _scrollController,
-                itemCount: _documents.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final DocumentSnapshot document = _documents[index];
-                  final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => BookDetailsScreen(book: data),
-                        ),
-                      );
-                    },
-                    child: ListTile(
-                      title: Text(data['title']),
-                      subtitle: Text('ISBN: ${data['isbn']}'),
-                    ),
-                  );
-                },
+        ? CircularProgressIndicator()
+        : ListView.builder(
+          controller: _scrollController,
+          itemCount: _documents.length,
+          itemBuilder: (BuildContext context, int index) {
+            final DocumentSnapshot document = _documents[index];
+            final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+            final List<String> authors = List<String>.from(data['authors'] as List<dynamic>);
+            final String authorsString = authors.join(', ');
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => BookDetailsScreen(book: data),
+                  ),
+                );
+              },
+              child: ListTile(
+                title: Text(data['title']),
+                subtitle: Text('$authorsString'),
               ),
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddBookScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
