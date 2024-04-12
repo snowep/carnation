@@ -65,4 +65,9 @@ class FirestoreService {
       }, SetOptions(merge: true));
     }
   }
+
+  Future<void> updateBookCoverImageUrl(String isbn, String url) async {
+    final bookDocRef = db.collection('books').doc(isbn);
+    await bookDocRef.update({'coverImageUrl': url});
+  }
 }

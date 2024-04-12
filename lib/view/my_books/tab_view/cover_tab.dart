@@ -20,7 +20,7 @@ class _CoverTabState extends State<CoverTab> with AutomaticKeepAliveClientMixin 
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Add this line
+    super.build(context);
     return Column(
       children: <Widget>[
         ElevatedButton(

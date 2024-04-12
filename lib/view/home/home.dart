@@ -14,7 +14,7 @@ class _HomePageState extends State<HomePage> {
   final List<MenuItem> menuItems = [
     MenuItem(label: 'Home', icon: Icons.home, screen: const HomeScreen()),
     MenuItem(label: 'Library', icon: Icons.search_outlined, screen: const LibraryScreen()),
-    MenuItem(label: 'Bookshelf', icon: Icons.book, screen: const MyBooksScreen()),
+    MenuItem(label: 'Bookshelf', icon: Icons.book, screen: MyBooksScreen()),
   ];
 
 

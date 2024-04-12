@@ -20,19 +20,21 @@ class AddBookScreen extends StatefulWidget {
 
 class _AddBookScreenState extends State<AddBookScreen> {
   XFile? pickedImage;
-  Future<String?> uploadImage() async {
-    if (pickedImage == null) return null;
+  void uploadImage(String isbn) async {
+    if (pickedImage == null) return;
 
     final Reference storageReference = FirebaseStorage.instance.ref().child('books/${Path.basename(pickedImage!.path)}');
-    final UploadTask uploadTask = storageReference.putFile(File(pickedImage!.path));
+      final UploadTask uploadTask = storageReference.putFile(File(pickedImage!.path));
 
     try {
       final TaskSnapshot downloadUrl = await uploadTask;
       final String url = await downloadUrl.ref.getDownloadURL();
-      return url;
+
+      await FirestoreService().updateBookCoverImageUrl(isbn, url);
     } catch (e) {
-      print('Error occurred while uploading to Firebase Storage: $e');
-      return null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error occurred while uploading to Firebase Storage: $e')),
+      );
     }
   }
 
@@ -81,14 +83,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                         SnackBar(content: Text('Book with this ISBN already exists')),
                       );
                     } else {
-                      final String? imageUrl = await uploadImage();
-                      // Do something with imageUrl, for example:
-                      if (imageUrl != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Image uploaded successfully: $imageUrl')),
-                        );
-                      }
-
                       await FirestoreService().addBook(
                         isbn: isbnController.text,
                         title: titleController.text,
@@ -108,14 +102,14 @@ class _AddBookScreenState extends State<AddBookScreen> {
                         condition: conditionController.text,
                         location: locationController.text,
                         owner: ownerController.text,
-                        coverImageUrl: imageUrl,
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Book added successfully')),
                       );
+                      uploadImage(isbnController.text);
                       Navigator.of(context).pop();
                     }
-                  } catch (e) {
+                  } catch (e) {                    
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Failed to add book: $e')),
                     );
