@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:carnation/services/firestore_services.dart';
 import 'package:carnation/view/my_books/tab_view/cover_tab.dart';
 import 'package:carnation/view/my_books/tab_view/credits_tab.dart';
@@ -5,6 +7,9 @@ import 'package:carnation/view/my_books/tab_view/details_tab.dart';
 import 'package:carnation/view/my_books/tab_view/main_tab.dart';
 import 'package:carnation/view/my_books/tab_view/personal_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as Path;
 
 class AddBookScreen extends StatefulWidget {
   const AddBookScreen({Key? key}) : super(key: key);
@@ -14,6 +19,23 @@ class AddBookScreen extends StatefulWidget {
 }
 
 class _AddBookScreenState extends State<AddBookScreen> {
+  XFile? pickedImage;
+  Future<String?> uploadImage() async {
+    if (pickedImage == null) return null;
+
+    final Reference storageReference = FirebaseStorage.instance.ref().child('books/${Path.basename(pickedImage!.path)}');
+    final UploadTask uploadTask = storageReference.putFile(File(pickedImage!.path));
+
+    try {
+      final TaskSnapshot downloadUrl = await uploadTask;
+      final String url = await downloadUrl.ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      print('Error occurred while uploading to Firebase Storage: $e');
+      return null;
+    }
+  }
+
   final mainFormKey = GlobalKey<FormState>();
   final detailsFormKey = GlobalKey<FormState>();
   final isbnController = TextEditingController();
@@ -59,6 +81,14 @@ class _AddBookScreenState extends State<AddBookScreen> {
                         SnackBar(content: Text('Book with this ISBN already exists')),
                       );
                     } else {
+                      final String? imageUrl = await uploadImage();
+                      // Do something with imageUrl, for example:
+                      if (imageUrl != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Image uploaded successfully: $imageUrl')),
+                        );
+                      }
+
                       await FirestoreService().addBook(
                         isbn: isbnController.text,
                         title: titleController.text,
@@ -78,6 +108,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                         condition: conditionController.text,
                         location: locationController.text,
                         owner: ownerController.text,
+                        coverImageUrl: imageUrl,
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Book added successfully')),
@@ -133,7 +164,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
               ),
             ),
             Form(
-              child: CoverTab(),
+              child: CoverTab(
+                onImagePicked: (image) {
+                  setState(() {
+                    pickedImage = image;
+                  });
+                },
+              ),
             ),
             Form(
               child: PersonalTab(

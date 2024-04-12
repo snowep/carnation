@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class CoverTab extends StatefulWidget {
+  final Function(XFile) onImagePicked;
+
+  CoverTab({required this.onImagePicked});
+
   @override
   _CoverTabState createState() => _CoverTabState();
 }
@@ -23,9 +27,12 @@ class _CoverTabState extends State<CoverTab> with AutomaticKeepAliveClientMixin 
           child: Text('Pick Image'),
           onPressed: () async {
             final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-            setState(() {
-              _image = image;
-            });
+            if (image != null) {
+              widget.onImagePicked(image);
+              setState(() {
+                _image = image;
+              });
+            }
           },
         ),
         if (_image != null)

@@ -21,6 +21,8 @@ class Book {
   final String? condition;
   final String? location;
   final String? owner;
+  // Cover
+  final String? coverImageUrl;
 
   Book({
     required this.title,
@@ -41,6 +43,7 @@ class Book {
     this.condition,
     this.location,
     this.owner,
+    this.coverImageUrl,
   }) : this.authors = authors.split(',').map((author) => author.trim()).toList(); // Split the authors string into a list
 
   Map<String, dynamic> toJson() {
@@ -63,6 +66,7 @@ class Book {
       'condition': condition,
       'location': location,
       'owner': owner,
+      'coverImageUrl': coverImageUrl,
     };
   }
 }

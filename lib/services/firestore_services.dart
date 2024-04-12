@@ -27,7 +27,8 @@ class FirestoreService {
     required int quantity,
     String? condition,
     String? location,
-    String? owner,
+    String? owner, 
+    String? coverImageUrl,
   }) async {
     if (await bookExists(isbn)) {
       throw Exception('Book already exists');
@@ -51,6 +52,7 @@ class FirestoreService {
       condition: condition,
       location: location,
       owner: owner,
+      coverImageUrl: coverImageUrl,
     );
 
     final bookDocRef = db.collection('books').doc(isbn);
