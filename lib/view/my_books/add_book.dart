@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'dart:math';
 import 'package:carnation/services/firestore_services.dart';
 import 'package:carnation/view/my_books/tab_view/cover_tab.dart';
 import 'package:carnation/view/my_books/tab_view/credits_tab.dart';
@@ -21,19 +21,43 @@ class AddBookScreen extends StatefulWidget {
 class _AddBookScreenState extends State<AddBookScreen> {
   XFile? pickedImage;
   void uploadImage(String isbn) async {
-    if (pickedImage == null) return;
+    if (pickedImage == null || isbn.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: Image or ISBN is missing')),
+      );
+      return;
+    }
 
-    final Reference storageReference = FirebaseStorage.instance.ref().child('books/${Path.basename(pickedImage!.path)}');
-      final UploadTask uploadTask = storageReference.putFile(File(pickedImage!.path));
+    // Split the title into words
+    List<String> words = titleController.text.split(' ');
+
+    // Get the first letter of each word and make it uppercase
+    String firstLetters = words.map((word) => word[0].toUpperCase()).join();
+
+    final rng = Random();
+    final randomNumber = rng.nextInt(10000);
+
+    // Create a new file with the desired name
+    final newFilePath = pickedImage!.path.replaceFirst(
+      RegExp(r'[^/]*$'), 
+      '$firstLetters-$randomNumber-cover.jpg'
+    ).toUpperCase();
+    final newFile = File(newFilePath);
+
+    // Copy the contents of the original file to the new file
+    await newFile.writeAsBytes(await File(pickedImage!.path).readAsBytes());
+
+    final Reference storageReference = FirebaseStorage.instance.ref().child('books/${Path.basename(newFile.path)}');
+    final UploadTask uploadTask = storageReference.putFile(newFile);
 
     try {
-      final TaskSnapshot downloadUrl = await uploadTask;
-      final String url = await downloadUrl.ref.getDownloadURL();
+      final TaskSnapshot downloadUrlSnapshot = await uploadTask.whenComplete(() {});
+      final String url = await downloadUrlSnapshot.ref.getDownloadURL();
 
       await FirestoreService().updateBookCoverImageUrl(isbn, url);
-    } catch (e) {
+    } on FirebaseException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred while uploading to Firebase Storage: $e')),
+        SnackBar(content: Text('Error occurred while uploading to Firebase Storage: ${e.message}')),
       );
     }
   }
@@ -82,7 +106,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Book with this ISBN already exists')),
                       );
-                    } else {
+                    } else { 
+                      uploadImage(isbnController.text);
                       await FirestoreService().addBook(
                         isbn: isbnController.text,
                         title: titleController.text,
@@ -106,7 +131,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Book added successfully')),
                       );
-                      uploadImage(isbnController.text);
                       Navigator.of(context).pop();
                     }
                   } catch (e) {                    
@@ -159,9 +183,9 @@ class _AddBookScreenState extends State<AddBookScreen> {
             ),
             Form(
               child: CoverTab(
-                onImagePicked: (image) {
+                onImagePicked: (compressedXFile) {
                   setState(() {
-                    pickedImage = image;
+                    pickedImage = compressedXFile;
                   });
                 },
               ),

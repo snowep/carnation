@@ -15,13 +15,17 @@ class BookDetailsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: book.entries.map((entry) {
-            if (entry.value != null) {
-              return Text('${entry.key}: ${entry.value}');
-            } else {
-              return Container(); // Return an empty container if the value is null
-            }
-          }).toList(),
+          children: [
+            if (book['coverImageUrl'] != null)
+              Image.network(book['coverImageUrl']),
+            ...book.entries.map((entry) {
+              if (entry.value != null) {
+                return Text('${entry.key}: ${entry.value}');
+              } else {
+                return Container(); // Return an empty container if the value is null
+              }
+            }).toList(),
+          ],
         ),
       ),
     );

@@ -64,11 +64,16 @@ class FirestoreService {
     }
     
     await Future.wait([
-      updateCreditBook(illustrator as String, isbn, 'illustrators'),
-      updateCreditBook(translator as String, isbn, 'translators'),
-      updateCreditBook(editor as String, isbn, 'editors'),
-      updateCreditBook(coverArtist as String, isbn, 'coverArtists'),
-      updateSeriesBook(series, isbn),
+      if (illustrator != null && illustrator.isNotEmpty) 
+        updateCreditBook(illustrator, isbn, 'illustrators'),
+      if (translator != null && translator.isNotEmpty) 
+        updateCreditBook(translator, isbn, 'translators'),
+      if (editor != null && editor.isNotEmpty) 
+        updateCreditBook(editor, isbn, 'editors'),
+      if (coverArtist != null && coverArtist.isNotEmpty) 
+        updateCreditBook(coverArtist, isbn, 'coverArtists'),
+      if (series != null && series.isNotEmpty) 
+        updateSeriesBook(series, isbn),
     ]);
   }
 
@@ -95,16 +100,10 @@ class FirestoreService {
       'name': series,
     }, SetOptions(merge: true));
   }
+  
   Future<void> updateBookCoverImageUrl(String isbn, String url) async {
     final bookDocRef = db.collection('books').doc(isbn);
     await bookDocRef.update({'coverImageUrl': url});
-  }
-
-  Future<void> updateAuthorsBook(String authorId, String isbn) async {
-    final authorDocRef = db.collection('authors').doc(authorId);
-    await authorDocRef.set({
-      'books': FieldValue.arrayUnion([isbn]),
-    }, SetOptions(merge: true));
   }
 
   Future<void> updateCreditBook(String creditId, String isbn, String role) async {
