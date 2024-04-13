@@ -1,3 +1,5 @@
+import 'package:carnation/services/firestore_services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class DetailsTab extends StatefulWidget {
@@ -40,10 +42,85 @@ class _DetailsTabState extends State<DetailsTab> with AutomaticKeepAliveClientMi
           controller: widget.heightController,
           decoration: const InputDecoration(labelText: 'Height (Optional) (cm)')
         ),
-        TextFormField(
-          keyboardType: TextInputType.number,
-          controller: widget.seriesController,
-          decoration: const InputDecoration(labelText: 'Series (Optional)')
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('series').snapshots(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Something went wrong');
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Text("Loading");
+                  }
+
+                  List<Map<String, dynamic>> series = snapshot.data!.docs.map((DocumentSnapshot document) {
+                    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                    return {
+                      'id': document.id,
+                      'name': data['name'] ?? ''
+                    };
+                  }).toList();
+
+                  return DropdownButtonFormField<String>(
+                    value: widget.seriesController.text.isEmpty ? null : widget.seriesController.text,
+                    items: series.map<DropdownMenuItem<String>>((series) {
+                      return DropdownMenuItem<String>(
+                        value: series['id'],
+                        child: Text(series['name']),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        widget.seriesController.text = newValue ?? '';
+                      });
+                    },
+                    decoration: const InputDecoration(labelText: 'Series (Optional)'),
+                  );
+                },
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    TextEditingController _seriesController = TextEditingController();
+                    return AlertDialog(
+                      title: Text('Add new series'),
+                      content: TextFormField(
+                        controller: _seriesController,
+                        decoration: const InputDecoration(labelText: 'Series name'),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('Cancel'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: Text('Add'),
+                          onPressed: () {
+                            FirestoreService firestoreService = FirestoreService();
+                            if (_seriesController.text.isNotEmpty) {
+                              firestoreService.addSeries(_seriesController.text);
+                              _seriesController.clear();
+                              Navigator.of(context).pop();
+                            }
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
         TextFormField(
           keyboardType: TextInputType.number,

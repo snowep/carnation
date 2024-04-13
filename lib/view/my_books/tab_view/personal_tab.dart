@@ -21,7 +21,16 @@ class PersonalTab extends StatefulWidget {
 }
 
 class _PersonalTabState extends State<PersonalTab> with AutomaticKeepAliveClientMixin {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.quantityController.text.isEmpty) {
+      widget.quantityController.text = '1';
+    }
+  }
+
   String? _selectedCollectionStatus;
+  bool _isReadOnly = true;
   @override
   bool get wantKeepAlive => true;
 
@@ -54,6 +63,13 @@ class _PersonalTabState extends State<PersonalTab> with AutomaticKeepAliveClient
           onChanged: (String? newValue) {
             setState(() {
               widget.collectionStatusController.text = newValue!;
+              if (newValue == 'Borrowed') {
+                _isReadOnly = true;
+                widget.ownerController.clear();
+              } else {
+                _isReadOnly = false;
+                widget.ownerController.text = 'Ferdinand';
+              }
             });
           },
         ),
@@ -72,6 +88,7 @@ class _PersonalTabState extends State<PersonalTab> with AutomaticKeepAliveClient
         ),
         TextFormField(
           controller: widget.ownerController,
+          enabled: _isReadOnly,
           decoration: const InputDecoration(labelText: 'Owner'),
         ),
       ],
