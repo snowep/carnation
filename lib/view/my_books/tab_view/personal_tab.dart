@@ -21,6 +21,14 @@ class PersonalTab extends StatefulWidget {
 }
 
 class _PersonalTabState extends State<PersonalTab> with AutomaticKeepAliveClientMixin {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.quantityController.text.isEmpty) {
+      widget.quantityController.text = '1';
+    }
+  }
+
   String? _selectedCollectionStatus;
   bool _isReadOnly = true;
   @override

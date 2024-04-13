@@ -124,7 +124,7 @@ class _MainTabState extends State<MainTab> with AutomaticKeepAliveClientMixin {
                           onPressed: () {
                             FirestoreService firestoreService = FirestoreService();
                             if (_authorController.text.isNotEmpty) {
-                              firestoreService.addAuthor(_authorController.text);
+                              firestoreService.addCredit(_authorController.text, 'authors');
                               _authorController.clear();
                               Navigator.of(context).pop();
                             }
@@ -139,6 +139,8 @@ class _MainTabState extends State<MainTab> with AutomaticKeepAliveClientMixin {
           ],
         ),
         TextFormField(
+          minLines: 6,
+          maxLines: 20,
           controller: widget.synopsisController,
           decoration: const InputDecoration(labelText: 'Synopsis'),
           validator: (value) {

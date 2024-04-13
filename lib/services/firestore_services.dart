@@ -60,10 +60,16 @@ class FirestoreService {
     await bookDocRef.set(book.toJson());
 
     for (String authorId in book.authors) {
-      await updateAuthorsBook(authorId, isbn);
+      await updateCreditBook(authorId, isbn, 'authors');
     }
-
-    await updateSeriesBook(series, isbn);
+    
+    await Future.wait([
+      updateCreditBook(illustrator as String, isbn, 'illustrators'),
+      updateCreditBook(translator as String, isbn, 'translators'),
+      updateCreditBook(editor as String, isbn, 'editors'),
+      updateCreditBook(coverArtist as String, isbn, 'coverArtists'),
+      updateSeriesBook(series, isbn),
+    ]);
   }
 
   Future<void> updateSeriesBook(String? series, String isbn) async {
@@ -79,7 +85,9 @@ class FirestoreService {
     int randomNumber = rng.nextInt(10000);  // generate a number between 0 and 9999
 
     // Create a unique ID
-    String seriesId = '$series$randomNumber';
+    List<String> words = series.split(' ');
+    String initials = words.map((word) => word[0].toUpperCase()).join();
+    String seriesId = '$initials-$randomNumber';
 
     // Use the unique ID for the new series
     final seriesDocRef = db.collection('series').doc(seriesId);
@@ -87,36 +95,60 @@ class FirestoreService {
       'name': series,
     }, SetOptions(merge: true));
   }
-
   Future<void> updateBookCoverImageUrl(String isbn, String url) async {
     final bookDocRef = db.collection('books').doc(isbn);
     await bookDocRef.update({'coverImageUrl': url});
-  }
-
-  Future<void> addAuthor(String author) async {
-    // Split the author's name into first and last name
-    List<String> names = author.split(' ');
-    String firstInitial = names[0][0];
-    String lastInitial = names.length > 1 ? names[1][0] : '';
-
-    // Generate a random number
-    var rng = Random();
-    int randomNumber = rng.nextInt(10000);  // generate a number between 0 and 9999
-
-    // Create a unique ID
-    String authorId = '$firstInitial$lastInitial$randomNumber';
-
-    // Use the unique ID for the new author
-    final authorDocRef = db.collection('authors').doc(authorId);
-    await authorDocRef.set({
-      'name': author,
-    }, SetOptions(merge: true));
   }
 
   Future<void> updateAuthorsBook(String authorId, String isbn) async {
     final authorDocRef = db.collection('authors').doc(authorId);
     await authorDocRef.set({
       'books': FieldValue.arrayUnion([isbn]),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateCreditBook(String creditId, String isbn, String role) async {
+    final creditDocRef = db.collection(role).doc(creditId);
+    final docSnapshot = await creditDocRef.get();
+
+    if (docSnapshot.exists) {
+      List<String> books = List<String>.from(docSnapshot.data()?['books'] ?? []);
+      if (!books.contains(isbn)) {
+        await creditDocRef.set({
+          'books': FieldValue.arrayUnion([isbn]),
+        }, SetOptions(merge: true));
+      } else {
+        print("ISBN already exists in the books array");
+      }
+    } else {
+      print("Document does not exist");
+    }
+  }
+
+  Future<void> addCredit(String creditName, String role) async {
+    // Split the author's name into first and last name
+    List<String> names = creditName.split(' ');
+    String firstInitial = names[0][0];
+    String middleInitial = '';
+    String lastInitial = '';
+
+    if (names.length == 2) {
+      lastInitial = names[1][0];
+    } else if (names.length > 2) {
+      middleInitial = names[1][0];
+      lastInitial = names[2][0];
+    }
+
+    // Generate a random number
+    var rng = Random();
+    int randomNumber = rng.nextInt(10000);  // generate a number between 0 and 9999
+
+    // Create a unique ID
+    String creditId = '$firstInitial$middleInitial$lastInitial-$randomNumber';
+
+    final creditDocRef = db.collection(role).doc(creditId.toUpperCase());
+    await creditDocRef.set({
+      'name': creditName,
     }, SetOptions(merge: true));
   }
 }

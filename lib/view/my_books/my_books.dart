@@ -55,42 +55,55 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
         title: const Text('Bookshelf'),
       ),
       body: Center(
-        child: _documents.isEmpty
-        ? CircularProgressIndicator()
-        : ListView.builder(
-          controller: _scrollController,
-          itemCount: _documents.length,
-          itemBuilder: (BuildContext context, int index) {
-            final DocumentSnapshot document = _documents[index];
-            final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-            final List<String> authorIds = List<String>.from(data['authors'] as List<dynamic>);
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('books').snapshots(),
+          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => BookDetailsScreen(book: data),
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            }
+
+            final _documents = snapshot.data!.docs;
+
+            return ListView.builder(
+              controller: _scrollController,
+              itemCount: _documents.length,
+              itemBuilder: (BuildContext context, int index) {
+                final DocumentSnapshot document = _documents[index];
+                final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                final List<String> authorIds = List<String>.from(data['authors'] as List<dynamic>);
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => BookDetailsScreen(book: data),
+                      ),
+                    );
+                  },
+                  child: FutureBuilder<List<DocumentSnapshot>>(
+                    future: Future.wait(authorIds.map((id) => FirebaseFirestore.instance.collection('authors').doc(id).get()).toList()),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        List<DocumentSnapshot> authorDocs = snapshot.data!;
+                        String authorsString = authorDocs.map((doc) => (doc.data() as Map<String, dynamic>)['name']).join(', ');
+
+                        return ListTile(
+                          title: Text(data['title']),
+                          subtitle: Text('$authorsString'),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return Container();
+                      }
+                    },
                   ),
                 );
               },
-              child: FutureBuilder<List<DocumentSnapshot>>(
-                future: Future.wait(authorIds.map((id) => FirebaseFirestore.instance.collection('authors').doc(id).get()).toList()),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    List<DocumentSnapshot> authorDocs = snapshot.data!;
-                    String authorsString = authorDocs.map((doc) => (doc.data() as Map<String, dynamic>)['name']).join(', ');
-
-                    return ListTile(
-                      title: Text(data['title']),
-                      subtitle: Text('$authorsString'),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                    return Container();
-                  }
-                },
-              ),
             );
           },
         ),
