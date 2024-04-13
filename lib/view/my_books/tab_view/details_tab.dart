@@ -1,3 +1,4 @@
+import 'package:carnation/services/firestore_services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -56,17 +57,20 @@ class _DetailsTabState extends State<DetailsTab> with AutomaticKeepAliveClientMi
                     return Text("Loading");
                   }
 
-                  List<String> series = snapshot.data!.docs.map((DocumentSnapshot document) {
+                  List<Map<String, dynamic>> series = snapshot.data!.docs.map((DocumentSnapshot document) {
                     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-                    return data['name'] ?? '';
-                  }).toList().cast<String>();
+                    return {
+                      'id': document.id,
+                      'name': data['name'] ?? ''
+                    };
+                  }).toList();
 
                   return DropdownButtonFormField<String>(
                     value: widget.seriesController.text.isEmpty ? null : widget.seriesController.text,
-                    items: series.map<DropdownMenuItem<String>>((String value) {
+                    items: series.map<DropdownMenuItem<String>>((series) {
                       return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                        value: series['id'],
+                        child: Text(series['name']),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
@@ -102,10 +106,9 @@ class _DetailsTabState extends State<DetailsTab> with AutomaticKeepAliveClientMi
                         TextButton(
                           child: Text('Add'),
                           onPressed: () {
+                            FirestoreService firestoreService = FirestoreService();
                             if (_seriesController.text.isNotEmpty) {
-                              FirebaseFirestore.instance.collection('series').doc(_seriesController.text).set({
-                                'name': _seriesController.text,
-                              });
+                              firestoreService.addSeries(_seriesController.text);
                               _seriesController.clear();
                               Navigator.of(context).pop();
                             }

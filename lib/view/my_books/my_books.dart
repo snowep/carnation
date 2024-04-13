@@ -63,8 +63,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
           itemBuilder: (BuildContext context, int index) {
             final DocumentSnapshot document = _documents[index];
             final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-            final List<String> authors = List<String>.from(data['authors'] as List<dynamic>);
-            final String authorsString = authors.join(', ');
+            final List<String> authorIds = List<String>.from(data['authors'] as List<dynamic>);
 
             return GestureDetector(
               onTap: () {
@@ -74,9 +73,23 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
                   ),
                 );
               },
-              child: ListTile(
-                title: Text(data['title']),
-                subtitle: Text('$authorsString'),
+              child: FutureBuilder<List<DocumentSnapshot>>(
+                future: Future.wait(authorIds.map((id) => FirebaseFirestore.instance.collection('authors').doc(id).get()).toList()),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    List<DocumentSnapshot> authorDocs = snapshot.data!;
+                    String authorsString = authorDocs.map((doc) => (doc.data() as Map<String, dynamic>)['name']).join(', ');
+
+                    return ListTile(
+                      title: Text(data['title']),
+                      subtitle: Text('$authorsString'),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    return Container();
+                  }
+                },
               ),
             );
           },

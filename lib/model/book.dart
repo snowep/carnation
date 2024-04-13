@@ -44,7 +44,7 @@ class Book {
     this.location,
     this.owner,
     this.coverImageUrl,
-  }) : this.authors = authors.split(',').map((author) => author.trim()).toList(); // Split the authors string into a list
+  }) : authors = authors.split(',').map((author) => author.trim()).toList(); // Split the authors string into a list
 
   Map<String, dynamic> toJson() {
     return {

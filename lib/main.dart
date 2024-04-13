@@ -26,12 +26,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         brightness: Brightness.dark
       ),
-      home: RootWidget(),
+      home: const RootWidget(),
     );
   }
 }
 
 class RootWidget extends StatelessWidget {
+  const RootWidget({super.key});
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -41,7 +43,7 @@ class RootWidget extends StatelessWidget {
           return const CircularProgressIndicator();
         } else {
           if (snapshot.hasData) {
-            return HomePage();
+            return const HomePage();
           } else {
             return LoginScreen();
           }

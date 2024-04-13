@@ -1,3 +1,4 @@
+import 'package:carnation/services/firestore_services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -66,17 +67,20 @@ class _MainTabState extends State<MainTab> with AutomaticKeepAliveClientMixin {
                     return Text("Loading");
                   }
 
-                  List<String> authors = snapshot.data!.docs.map((DocumentSnapshot document) {
+                  List<Map<String, dynamic>> authors = snapshot.data!.docs.map((DocumentSnapshot document) {
                     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-                    return data['name'] ?? '';
-                  }).toList().cast<String>();
+                    return {
+                      'id': document.id,
+                      'name': data['name'] ?? ''
+                    };
+                  }).toList();
 
                   return DropdownButtonFormField<String>(
                     value: widget.authorController.text.isEmpty ? null : widget.authorController.text,
-                    items: authors.map<DropdownMenuItem<String>>((String value) {
+                    items: authors.map<DropdownMenuItem<String>>((author) {
                       return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                        value: author['id'],
+                        child: Text(author['name']),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
@@ -118,10 +122,9 @@ class _MainTabState extends State<MainTab> with AutomaticKeepAliveClientMixin {
                         TextButton(
                           child: Text('Add'),
                           onPressed: () {
+                            FirestoreService firestoreService = FirestoreService();
                             if (_authorController.text.isNotEmpty) {
-                              FirebaseFirestore.instance.collection('authors').doc(_authorController.text).set({
-                                'name': _authorController.text,
-                              });
+                              firestoreService.addAuthor(_authorController.text);
                               _authorController.clear();
                               Navigator.of(context).pop();
                             }
